@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Direction Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: #7f8c8d;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .compass {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 40px;
+        }
+        .compass-base {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.15),
+                inset 0 0 0 1px #e0e0e0,
+                inset 0 0 30px rgba(0,0,0,0.05);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .direction-markers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        .direction-item {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            top: 0;
+            left: 50%;
+            transform-origin: 50% 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .direction {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.8);
+            border: 1px solid #d0d7de;
+            transition: all 0.2s ease;
+        }
+        .direction:hover {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+            border-color: #3498db;
+            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .degree-markers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        .degree-marker {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: #bdc3c7;
+            left: 50%;
+            transform-origin: center 150px;
+        }
+        .degree-marker.major {
+            height: 20px;
+            background: #7f8c8d;
+            width: 3px;
+        }
+        .center-dot {
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        .pointer {
+            position: absolute;
+            width: 40%;
+            height: 4px;
+            background: #e74c3c;
+            top: 50%;
+            left: 50%;
+            transform-origin: left center;
+            border-radius: 2px;
+            z-index: 5;
+            transition: transform 0.1s linear;
+        }
+        .pointer-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 12px solid #e74c3c;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            right: -2px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .controls {
+            margin-bottom: 30px;
+        }
+        .spin-button {
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .spin-button:hover {
+            background: linear-gradient(to right, #2980b9, #2573a7);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.5);
+        }
+        .spin-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.4);
+        }
+        .spin-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .result {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            display: inline-block;
+            min-width: 350px;
+        }
+        .result-title {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        .result-direction {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .result-text {
+            font-size: 1.3rem;
+            color: #34495e;
+        }
+        .history {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .history-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: left;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .history-list {
+            list-style: none;
+            text-align: left;
+        }
+        .history-item {
+            padding: 10px 15px;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-direction {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+        .history-time {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        footer {
+            margin-top: 40px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px;
+        }
+        @media (max-width: 600px) {
+            .compass {
+                width: 250px;
+                height: 250px;
+            }
+            .direction-item {
+                transform-origin: 50% 125px;
+            }
+            .direction {
+                font-size: 1.3rem;
+                width: 32px;
+                height: 32px;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            .result {
+                min-width: 280px;
+                padding: 15px 20px;
+            }
+            .result-direction {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Food Direction Finder</h1>
+        <p class="subtitle">Click the spin button for a random 360° direction to find your next meal!</p>
+        
+        <div class="compass">
+            <div class="compass-base">
+                <div class="direction-markers">
+                    <div class="direction-item" style="transform: rotate(0deg);">
+                        <div class="direction" style="transform: rotate(0deg);">N</div>
+                    </div>
+                    <div class="direction-item" style="transform: rotate(45deg);">
+                        <div class="direction" style="transform: rotate(-45deg);">NE</div>
+                    </div>
+                    <div class="direction-item" style="transform: rotate(90deg);">
+                        <div class="direction" style="transform: rotate(-90deg);">E</div>
+                    </div>
+                    <div class="direction-item" style="transform: rotate(135deg);">
+                        <div class="direction" style="transform: rotate(-135deg);">SE</div>
+                    </div>
+                    <div class="direction-item" style="transform: rotate(180deg);">
+                        <div class="direction" style="transform: rotate(-180deg);">S</div>
+                    </div>
+                    <div class="direction-item" style="transform: rotate(225deg);">
+                        <div class="direction" style="transform: rotate(-225deg);">SW</div>
+                    </div>
+                    <div class="direction-item" style="transform: rotate(270deg);">
+                        <div class="direction" style="transform: rotate(-270deg);">W</div>
+                    </div>
+                    <div class="direction-item" style="transform: rotate(315deg);">
+                        <div class="direction" style="transform: rotate(-315deg);">NW</div>
+                    </div>
+                </div>
+                <div class="center-dot"></div>
+                <div class="pointer" id="pointer">
+                    <div class="pointer-head"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="spin-button" id="spinButton">SPIN THE COMPASS</button>
+        </div>
+        
+        <div class="result">
+            <div class="result-title">Your food direction is:</div>
+            <div class="result-direction" id="resultDirection">-</div>
+            <div class="result-text" id="resultText">Click spin to get a direction!</div>
+        </div>
+        
+        <div class="history">
+            <div class="history-title">Recent Spins</div>
+            <ul class="history-list" id="historyList"></ul>
+        </div>
+    </div>
+    
+    <footer>
+        Made with ❤️ for indecisive foodies everywhere
+    </footer>
+
+    <script>
+        const pointer = document.getElementById('pointer');
+        const spinButton = document.getElementById('spinButton');
+        const resultDirection = document.getElementById('resultDirection');
+        const resultText = document.getElementById('resultText');
+        const historyList = document.getElementById('historyList');
+        
+        // Cardinal directions mapping
+        const cardinalDirections = [
+            { name: 'N', angle: 0, range: [337.5, 22.5] },
+            { name: 'NE', angle: 45, range: [22.5, 67.5] },
+            { name: 'E', angle: 90, range: [67.5, 112.5] },
+            { name: 'SE', angle: 135, range: [112.5, 157.5] },
+            { name: 'S', angle: 180, range: [157.5, 202.5] },
+            { name: 'SW', angle: 225, range: [202.5, 247.5] },
+            { name: 'W', angle: 270, range: [247.5, 292.5] },
+            { name: 'NW', angle: 315, range: [292.5, 337.5] }
+        ];
+        
+        const directionNames = {
+            'N': 'North',
+            'NE': 'North East', 
+            'E': 'East',
+            'SE': 'South East',
+            'S': 'South',
+            'SW': 'South West',
+            'W': 'West',
+            'NW': 'North West'
+        };
+        
+        let isSpinning = false;
+        let spinAnimation = null;
+        let currentRotation = 0;
+        let history = [];
+        
+        function getRandomAngle() {
+            // Return random angle between 0 and 359.999...
+            return Math.floor(Math.random() * 360);
+        }
+        
+        function getDirectionFromAngle(angle) {
+            // Normalize angle to 0-360
+            const normalizedAngle = (angle % 360 + 360) % 360;
+            
+            // Find the cardinal direction
+            for (const dir of cardinalDirections) {
+                if (dir.range[0] <= dir.range[1]) {
+                    // Normal range (e.g., 22.5 to 67.5)
+                    if (normalizedAngle >= dir.range[0] && normalizedAngle < dir.range[1]) {
+                        return dir.name;
+                    }
+                } else {
+                    // Wraparound range (e.g., 337.5 to 22.5 for North)
+                    if (normalizedAngle >= dir.range[0] || normalizedAngle < dir.range[1]) {
+                        return dir.name;
+                    }
+                }
+            }
+            
+            // Fallback to nearest cardinal (shouldn't happen)
+            return 'N';
+        }
+        
+        function getAngleForDirection(directionName) {
+            const dir = cardinalDirections.find(d => d.name === directionName);
+            return dir ? dir.angle : 0;
+        }
+        
+        function getDescriptionFromAngle(angle, directionName) {
+            const descriptions = [
+                `Go ${directionNames[directionName]} (${angle}°) for a culinary adventure!`,
+                `Head ${directionNames[directionName]} (${angle}°) to discover new flavors!`,
+                `Travel ${directionNames[directionName]} (${angle}°) for some delicious food!`,
+                `Journey ${directionNames[directionName]} (${angle}°) for a tasty treat!`,
+                `Explore ${directionNames[directionName]} (${angle}°) for amazing eats!`,
+                `Follow ${directionNames[directionName]} (${angle}°) to find great food!`
+            ];
+            return descriptions[Math.floor(Math.random() * descriptions.length)];
+        }
+        
+        function rotatePointer(degrees) {
+            pointer.style.transform = `rotate(${degrees}deg)`;
+        }
+        
+        function startSpinning() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinButton.disabled = true;
+            spinButton.textContent = 'SPINNING...';
+            
+            // Reset result display
+            resultDirection.textContent = '-';
+            resultText.textContent = 'Finding your direction...';
+            
+            // Random spin parameters
+            const spinDuration = 2000 + Math.random() * 2000; // 2-4 seconds
+            const extraRotations = 5 + Math.floor(Math.random() * 10); // 5-14 full circles
+            const targetAngle = getRandomAngle();
+            
+            // Calculate total rotation (target angle + extra full rotations)
+            const totalTargetAngle = targetAngle + extraRotations * 360;
+            
+            // Start animation
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / spinDuration, 1);
+                
+                // Easing function for smooth deceleration
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                const rotation = easeOut * totalTargetAngle;
+                currentRotation = rotation % 360;
+                rotatePointer(rotation);
+                
+                if (progress < 1) {
+                    spinAnimation = requestAnimationFrame(animate);
+                } else {
+                    finishSpin(targetAngle);
+                }
+            }
+            
+            animate();
+        }
+        
+        function finishSpin(angle) {
+            isSpinning = false;
+            spinButton.disabled = false;
+            spinButton.textContent = 'SPIN AGAIN';
+            
+            // Normalize angle to 0-360
+            const normalizedAngle = (angle % 360 + 360) % 360;
+            
+            // Snap to exact angle for precision
+            rotatePointer(normalizedAngle);
+            
+            // Get direction name from angle
+            const directionName = getDirectionFromAngle(normalizedAngle);
+            
+            // Update result display
+            resultDirection.textContent = `${directionName} (${normalizedAngle}°)`;
+            resultText.textContent = getDescriptionFromAngle(normalizedAngle, directionName);
+            
+            // Add to history
+            addToHistory(normalizedAngle, directionName);
+        }
+        
+        function addToHistory(angle, directionName) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            history.unshift({
+                angle: angle,
+                direction: directionName,
+                time: timeString,
+                timestamp: now
+            });
+            
+            // Keep only last 10 entries
+            if (history.length > 10) {
+                history.pop();
+            }
+            
+            updateHistoryDisplay();
+        }
+        
+        function updateHistoryDisplay() {
+            historyList.innerHTML = '';
+            
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                
+                li.innerHTML = `
+                    <div class="history-direction">${directionNames[item.direction]} (${item.angle}°)</div>
+                    <div class="history-time">${item.time}</div>
+                `;
+                
+                historyList.appendChild(li);
+            });
+        }
+        
+        // Initialize with North direction
+        function init() {
+            // Set pointer to North (0°)
+            const initialAngle = 0;
+            rotatePointer(initialAngle);
+            
+            // Set initial result display
+            const initialDirection = 'N';
+            resultDirection.textContent = `${initialDirection} (${initialAngle}°)`;
+            resultText.textContent = getDescriptionFromAngle(initialAngle, initialDirection);
+            
+            // Add a few sample history entries
+            addToHistory(initialAngle, initialDirection);
+            addToHistory(90, 'E');
+            addToHistory(180, 'S');
+        }
+        
+        // Event listeners
+        spinButton.addEventListener('click', startSpinning);
+        
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
