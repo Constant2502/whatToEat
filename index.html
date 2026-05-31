@@ -1,341 +1,523 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Direction Finder</title>
+    <title>今天往哪吃</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #333;
+
+        :root {
+            --bg: #f6f4ee;
+            --panel: #ffffff;
+            --text: #24313d;
+            --muted: #68717a;
+            --line: #d8ded8;
+            --primary: #176b60;
+            --primary-dark: #0f4f47;
+            --accent: #d84f36;
+            --soft: #edf5f1;
+            --shadow: 0 16px 40px rgba(31, 43, 36, 0.12);
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(216, 79, 54, 0.12), transparent 32rem),
+                linear-gradient(135deg, #f8f5eb 0%, #e8f0ea 100%);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 28px 18px;
+        }
+
         .container {
-            max-width: 800px;
-            width: 100%;
+            width: min(920px, 100%);
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 6vw, 3.2rem);
+            line-height: 1.1;
+            margin-bottom: 10px;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .app-layout {
+            display: grid;
+            grid-template-columns: minmax(300px, 1fr) minmax(280px, 0.9fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .stage,
+        .side-panel {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(216, 222, 216, 0.9);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .stage {
+            border-radius: 8px;
+            padding: 26px;
             text-align: center;
         }
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            color: #2c3e50;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-        }
-        .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            color: #7f8c8d;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+
         .compass {
             position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 0 auto 40px;
+            width: min(320px, 76vw);
+            aspect-ratio: 1;
+            margin: 0 auto 24px;
         }
+
         .compass-base {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: #fff;
-            box-shadow: 
-                0 10px 30px rgba(0,0,0,0.15),
-                inset 0 0 0 1px #e0e0e0,
-                inset 0 0 30px rgba(0,0,0,0.05);
+            background:
+                radial-gradient(circle at center, #ffffff 0 28%, #f4f7f4 29% 53%, #ffffff 54% 100%);
+            box-shadow:
+                0 12px 28px rgba(36, 49, 61, 0.16),
+                inset 0 0 0 1px var(--line),
+                inset 0 0 38px rgba(23, 107, 96, 0.08);
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         .direction-markers {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             border-radius: 50%;
         }
+
         .direction-item {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             top: 0;
-            left: 50%;
-            transform-origin: 50% 150px;
+            left: calc(50% - 21px);
+            transform-origin: 50% 160px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         .direction {
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: #2c3e50;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.8);
-            border: 1px solid #d0d7de;
-            transition: all 0.2s ease;
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: 0 4px 12px rgba(36, 49, 61, 0.12);
+            color: var(--primary-dark);
+            font-size: 0.95rem;
+            font-weight: 800;
         }
-        .direction:hover {
-            background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
-            border-color: #3498db;
-            box-shadow: 0 5px 12px rgba(52, 152, 219, 0.3);
-        }
-        
-        .degree-markers {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-        }
-        .degree-marker {
-            position: absolute;
-            width: 2px;
-            height: 15px;
-            background: #bdc3c7;
-            left: 50%;
-            transform-origin: center 150px;
-        }
-        .degree-marker.major {
-            height: 20px;
-            background: #7f8c8d;
-            width: 3px;
-        }
+
         .center-dot {
-            width: 20px;
-            height: 20px;
-            background: #e74c3c;
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            border: 4px solid #fff;
             border-radius: 50%;
             position: absolute;
             z-index: 10;
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+            box-shadow: 0 0 0 1px rgba(216, 79, 54, 0.18), 0 6px 16px rgba(216, 79, 54, 0.35);
         }
+
         .pointer {
             position: absolute;
-            width: 40%;
-            height: 4px;
-            background: #e74c3c;
+            width: 39%;
+            height: 5px;
+            background: var(--accent);
             top: 50%;
             left: 50%;
             transform-origin: left center;
-            border-radius: 2px;
+            border-radius: 999px;
             z-index: 5;
-            transition: transform 0.1s linear;
         }
+
         .pointer-head {
             position: absolute;
             width: 0;
             height: 0;
-            border-left: 12px solid #e74c3c;
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            right: -2px;
+            border-left: 14px solid var(--accent);
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+            right: -4px;
             top: 50%;
             transform: translateY(-50%);
         }
-        .controls {
-            margin-bottom: 30px;
-        }
-        .spin-button {
-            background: linear-gradient(to right, #3498db, #2980b9);
-            color: white;
-            border: none;
-            padding: 16px 40px;
-            font-size: 1.3rem;
-            border-radius: 50px;
+
+        .spin-button,
+        .secondary-button {
+            border: 0;
+            border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-            transition: all 0.3s ease;
-            font-weight: bold;
-            letter-spacing: 1px;
+            font-weight: 700;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
         }
+
+        .spin-button {
+            width: min(100%, 320px);
+            min-height: 54px;
+            background: var(--primary);
+            color: #fff;
+            padding: 15px 24px;
+            font-size: 1.08rem;
+            box-shadow: 0 10px 22px rgba(23, 107, 96, 0.28);
+        }
+
         .spin-button:hover {
-            background: linear-gradient(to right, #2980b9, #2573a7);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.5);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
         }
+
         .spin-button:active {
             transform: translateY(0);
-            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.4);
         }
+
         .spin-button:disabled {
-            background: #95a5a6;
+            background: #8b9690;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
+
+        .spin-button:focus-visible,
+        .secondary-button:focus-visible,
+        input:focus-visible,
+        label:focus-within {
+            outline: 3px solid rgba(216, 79, 54, 0.35);
+            outline-offset: 3px;
+        }
+
         .result {
-            background: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            margin-top: 20px;
-            display: inline-block;
-            min-width: 350px;
+            margin-top: 24px;
+            padding: 18px;
+            border-radius: 8px;
+            background: var(--soft);
+            border: 1px solid #d4e5dc;
+            min-height: 142px;
         }
+
         .result-title {
-            font-size: 1.2rem;
-            color: #7f8c8d;
-            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: var(--muted);
+            margin-bottom: 8px;
         }
+
         .result-direction {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #2c3e50;
+            font-size: clamp(2.1rem, 8vw, 3.2rem);
+            line-height: 1.05;
+            font-weight: 850;
+            color: var(--primary-dark);
             margin-bottom: 10px;
         }
+
         .result-text {
-            font-size: 1.3rem;
-            color: #34495e;
+            color: #3d4b45;
+            font-size: 1rem;
+            line-height: 1.5;
         }
-        .history {
-            margin-top: 40px;
-            width: 100%;
-            max-width: 600px;
-            background: white;
-            border-radius: 15px;
+
+        .side-panel {
+            border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
-        .history-title {
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-            color: #2c3e50;
+
+        .settings {
+            margin-bottom: 24px;
             text-align: left;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ecf0f1;
         }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--text);
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .mode-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .mode-option input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .mode-option span,
+        .check-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--text);
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .mode-option input:checked + span {
+            border-color: var(--primary);
+            background: var(--soft);
+            color: var(--primary-dark);
+        }
+
+        .check-option {
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 0 12px;
+            font-size: 0.95rem;
+        }
+
+        .check-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+            margin-bottom: 12px;
+        }
+
+        .secondary-button {
+            background: #eef2ef;
+            color: #435047;
+            padding: 8px 12px;
+            font-size: 0.92rem;
+        }
+
+        .secondary-button:hover:not(:disabled) {
+            background: #e1e8e4;
+        }
+
+        .secondary-button:disabled {
+            color: #9aa29e;
+            cursor: not-allowed;
+        }
+
         .history-list {
             list-style: none;
             text-align: left;
+            display: grid;
+            gap: 8px;
         }
+
         .history-item {
-            padding: 10px 15px;
-            background: #f8f9fa;
-            margin-bottom: 8px;
+            padding: 11px 12px;
+            background: #fff;
+            border: 1px solid #e8ece8;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
+
         .history-direction {
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: #2c3e50;
+            font-weight: 800;
+            color: var(--text);
         }
+
         .history-time {
-            color: #7f8c8d;
-            font-size: 0.9rem;
+            color: var(--muted);
+            font-size: 0.88rem;
+            white-space: nowrap;
         }
-        footer {
-            margin-top: 40px;
-            color: #7f8c8d;
-            font-size: 0.9rem;
+
+        .empty-history {
+            color: var(--muted);
+            background: #fff;
+            border: 1px dashed var(--line);
+            border-radius: 8px;
+            padding: 16px;
             text-align: center;
-            padding: 20px;
+            line-height: 1.5;
         }
-        @media (max-width: 600px) {
+
+        footer {
+            margin-top: 22px;
+            color: var(--muted);
+            font-size: 0.88rem;
+            text-align: center;
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 18px 12px;
+            }
+
+            .app-layout {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .stage,
+            .side-panel {
+                padding: 16px;
+            }
+
             .compass {
-                width: 250px;
-                height: 250px;
+                width: min(270px, 78vw);
             }
+
             .direction-item {
-                transform-origin: 50% 125px;
+                width: 36px;
+                height: 36px;
+                left: calc(50% - 18px);
+                transform-origin: 50% 135px;
             }
+
             .direction {
-                font-size: 1.3rem;
                 width: 32px;
                 height: 32px;
+                font-size: 0.82rem;
             }
-            h1 {
-                font-size: 2.2rem;
+
+            .mode-group {
+                grid-template-columns: 1fr;
             }
-            .result {
-                min-width: 280px;
-                padding: 15px 20px;
+
+            .history-item {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 4px;
             }
-            .result-direction {
-                font-size: 2.5rem;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Food Direction Finder</h1>
-        <p class="subtitle">Click the spin button for a random 360° direction to find your next meal!</p>
-        
-        <div class="compass">
-            <div class="compass-base">
-                <div class="direction-markers">
-                    <div class="direction-item" style="transform: rotate(0deg);">
-                        <div class="direction" style="transform: rotate(0deg);">N</div>
-                    </div>
-                    <div class="direction-item" style="transform: rotate(45deg);">
-                        <div class="direction" style="transform: rotate(-45deg);">NE</div>
-                    </div>
-                    <div class="direction-item" style="transform: rotate(90deg);">
-                        <div class="direction" style="transform: rotate(-90deg);">E</div>
-                    </div>
-                    <div class="direction-item" style="transform: rotate(135deg);">
-                        <div class="direction" style="transform: rotate(-135deg);">SE</div>
-                    </div>
-                    <div class="direction-item" style="transform: rotate(180deg);">
-                        <div class="direction" style="transform: rotate(-180deg);">S</div>
-                    </div>
-                    <div class="direction-item" style="transform: rotate(225deg);">
-                        <div class="direction" style="transform: rotate(-225deg);">SW</div>
-                    </div>
-                    <div class="direction-item" style="transform: rotate(270deg);">
-                        <div class="direction" style="transform: rotate(-270deg);">W</div>
-                    </div>
-                    <div class="direction-item" style="transform: rotate(315deg);">
-                        <div class="direction" style="transform: rotate(-315deg);">NW</div>
+    <main class="container">
+        <header class="header">
+            <h1>今天往哪吃</h1>
+            <p class="subtitle">转一下指南针，随机给出一个找饭方向。只决定方向，不替你决定吃什么。</p>
+        </header>
+
+        <div class="app-layout">
+            <section class="stage" aria-label="方向指南针">
+                <div class="compass" aria-hidden="true">
+                    <div class="compass-base">
+                        <div class="direction-markers">
+                            <div class="direction-item" style="transform: rotate(0deg);">
+                                <div class="direction" style="transform: rotate(0deg);">北</div>
+                            </div>
+                            <div class="direction-item" style="transform: rotate(45deg);">
+                                <div class="direction" style="transform: rotate(-45deg);">东北</div>
+                            </div>
+                            <div class="direction-item" style="transform: rotate(90deg);">
+                                <div class="direction" style="transform: rotate(-90deg);">东</div>
+                            </div>
+                            <div class="direction-item" style="transform: rotate(135deg);">
+                                <div class="direction" style="transform: rotate(-135deg);">东南</div>
+                            </div>
+                            <div class="direction-item" style="transform: rotate(180deg);">
+                                <div class="direction" style="transform: rotate(-180deg);">南</div>
+                            </div>
+                            <div class="direction-item" style="transform: rotate(225deg);">
+                                <div class="direction" style="transform: rotate(-225deg);">西南</div>
+                            </div>
+                            <div class="direction-item" style="transform: rotate(270deg);">
+                                <div class="direction" style="transform: rotate(-270deg);">西</div>
+                            </div>
+                            <div class="direction-item" style="transform: rotate(315deg);">
+                                <div class="direction" style="transform: rotate(-315deg);">西北</div>
+                            </div>
+                        </div>
+                        <div class="center-dot"></div>
+                        <div class="pointer" id="pointer">
+                            <div class="pointer-head"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="center-dot"></div>
-                <div class="pointer" id="pointer">
-                    <div class="pointer-head"></div>
+
+                <button class="spin-button" id="spinButton" type="button">转一下</button>
+
+                <div class="result" role="status" aria-live="polite" aria-atomic="true">
+                    <div class="result-title">这次的方向是</div>
+                    <div class="result-direction" id="resultDirection">待决定</div>
+                    <div class="result-text" id="resultText">点击按钮后生成一个方向。</div>
                 </div>
-            </div>
+            </section>
+
+            <aside class="side-panel">
+                <section class="settings" aria-labelledby="settingsTitle">
+                    <div class="section-title" id="settingsTitle">设置</div>
+                    <div class="mode-group" role="radiogroup" aria-label="方向模式">
+                        <label class="mode-option">
+                            <input type="radio" name="mode" value="free" checked>
+                            <span>360度随机</span>
+                        </label>
+                        <label class="mode-option">
+                            <input type="radio" name="mode" value="cardinal">
+                            <span>八方向随机</span>
+                        </label>
+                    </div>
+                    <label class="check-option">
+                        <input type="checkbox" id="avoidRepeat" checked>
+                        <span>尽量不重复上一次方向</span>
+                    </label>
+                </section>
+
+                <section aria-labelledby="historyTitle">
+                    <div class="history-header">
+                        <div class="section-title" id="historyTitle">最近记录</div>
+                        <button class="secondary-button" id="clearHistoryButton" type="button" disabled>清空</button>
+                    </div>
+                    <ul class="history-list" id="historyList"></ul>
+                </section>
+            </aside>
         </div>
-        
-        <div class="controls">
-            <button class="spin-button" id="spinButton">SPIN THE COMPASS</button>
-        </div>
-        
-        <div class="result">
-            <div class="result-title">Your food direction is:</div>
-            <div class="result-direction" id="resultDirection">-</div>
-            <div class="result-text" id="resultText">Click spin to get a direction!</div>
-        </div>
-        
-        <div class="history">
-            <div class="history-title">Recent Spins</div>
-            <ul class="history-list" id="historyList"></ul>
-        </div>
-    </div>
-    
-    <footer>
-        Made with ❤️ for indecisive foodies everywhere
-    </footer>
+    </main>
+
+    <footer>适合选择困难时打开一下。</footer>
 
     <script>
         const pointer = document.getElementById('pointer');
@@ -343,205 +525,219 @@
         const resultDirection = document.getElementById('resultDirection');
         const resultText = document.getElementById('resultText');
         const historyList = document.getElementById('historyList');
-        
-        // Cardinal directions mapping
-        const cardinalDirections = [
-            { name: 'N', angle: 0, range: [337.5, 22.5] },
-            { name: 'NE', angle: 45, range: [22.5, 67.5] },
-            { name: 'E', angle: 90, range: [67.5, 112.5] },
-            { name: 'SE', angle: 135, range: [112.5, 157.5] },
-            { name: 'S', angle: 180, range: [157.5, 202.5] },
-            { name: 'SW', angle: 225, range: [202.5, 247.5] },
-            { name: 'W', angle: 270, range: [247.5, 292.5] },
-            { name: 'NW', angle: 315, range: [292.5, 337.5] }
+        const clearHistoryButton = document.getElementById('clearHistoryButton');
+        const avoidRepeat = document.getElementById('avoidRepeat');
+        const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
+        const storageKey = 'whatToEatHistory';
+
+        const directions = [
+            { name: 'N', label: '北', angle: 0, range: [337.5, 22.5] },
+            { name: 'NE', label: '东北', angle: 45, range: [22.5, 67.5] },
+            { name: 'E', label: '东', angle: 90, range: [67.5, 112.5] },
+            { name: 'SE', label: '东南', angle: 135, range: [112.5, 157.5] },
+            { name: 'S', label: '南', angle: 180, range: [157.5, 202.5] },
+            { name: 'SW', label: '西南', angle: 225, range: [202.5, 247.5] },
+            { name: 'W', label: '西', angle: 270, range: [247.5, 292.5] },
+            { name: 'NW', label: '西北', angle: 315, range: [292.5, 337.5] }
         ];
-        
-        const directionNames = {
-            'N': 'North',
-            'NE': 'North East', 
-            'E': 'East',
-            'SE': 'South East',
-            'S': 'South',
-            'SW': 'South West',
-            'W': 'West',
-            'NW': 'North West'
-        };
-        
+
+        const descriptions = [
+            '朝{direction}走一段，看看有没有顺眼的店。',
+            '今天先把选择权交给{direction}边。',
+            '{direction}方向是这次的答案。',
+            '从{direction}边开始找，范围不用太大。',
+            '别纠结了，先往{direction}走。'
+        ];
+
         let isSpinning = false;
-        let spinAnimation = null;
         let currentRotation = 0;
         let history = [];
-        
-        function getRandomAngle() {
-            // Return random angle between 0 and 359.999...
-            return Math.floor(Math.random() * 360);
+
+        function normalizeAngle(angle) {
+            return (angle % 360 + 360) % 360;
         }
-        
+
+        function getCurrentMode() {
+            return modeInputs.find(input => input.checked).value;
+        }
+
         function getDirectionFromAngle(angle) {
-            // Normalize angle to 0-360
-            const normalizedAngle = (angle % 360 + 360) % 360;
-            
-            // Find the cardinal direction
-            for (const dir of cardinalDirections) {
+            const normalizedAngle = normalizeAngle(angle);
+
+            for (const dir of directions) {
                 if (dir.range[0] <= dir.range[1]) {
-                    // Normal range (e.g., 22.5 to 67.5)
                     if (normalizedAngle >= dir.range[0] && normalizedAngle < dir.range[1]) {
-                        return dir.name;
+                        return dir;
                     }
-                } else {
-                    // Wraparound range (e.g., 337.5 to 22.5 for North)
-                    if (normalizedAngle >= dir.range[0] || normalizedAngle < dir.range[1]) {
-                        return dir.name;
-                    }
+                } else if (normalizedAngle >= dir.range[0] || normalizedAngle < dir.range[1]) {
+                    return dir;
                 }
             }
-            
-            // Fallback to nearest cardinal (shouldn't happen)
-            return 'N';
+
+            return directions[0];
         }
-        
-        function getAngleForDirection(directionName) {
-            const dir = cardinalDirections.find(d => d.name === directionName);
-            return dir ? dir.angle : 0;
+
+        function getRandomAngle() {
+            const mode = getCurrentMode();
+            const lastDirection = history[0]?.direction;
+
+            if (mode === 'cardinal') {
+                const pool = avoidRepeat.checked && lastDirection
+                    ? directions.filter(dir => dir.name !== lastDirection)
+                    : directions;
+                return pool[Math.floor(Math.random() * pool.length)].angle;
+            }
+
+            let angle = Math.floor(Math.random() * 360);
+
+            if (avoidRepeat.checked && lastDirection && directions.length > 1) {
+                for (let attempts = 0; attempts < 8; attempts += 1) {
+                    if (getDirectionFromAngle(angle).name !== lastDirection) {
+                        break;
+                    }
+                    angle = Math.floor(Math.random() * 360);
+                }
+            }
+
+            return angle;
         }
-        
-        function getDescriptionFromAngle(angle, directionName) {
-            const descriptions = [
-                `Go ${directionNames[directionName]} (${angle}°) for a culinary adventure!`,
-                `Head ${directionNames[directionName]} (${angle}°) to discover new flavors!`,
-                `Travel ${directionNames[directionName]} (${angle}°) for some delicious food!`,
-                `Journey ${directionNames[directionName]} (${angle}°) for a tasty treat!`,
-                `Explore ${directionNames[directionName]} (${angle}°) for amazing eats!`,
-                `Follow ${directionNames[directionName]} (${angle}°) to find great food!`
-            ];
-            return descriptions[Math.floor(Math.random() * descriptions.length)];
+
+        function getDescription(directionLabel) {
+            const template = descriptions[Math.floor(Math.random() * descriptions.length)];
+            return template.replace('{direction}', directionLabel);
         }
-        
+
         function rotatePointer(degrees) {
             pointer.style.transform = `rotate(${degrees}deg)`;
         }
-        
+
+        function saveHistory() {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(history));
+            } catch {
+                // History persistence is optional; the page should still work without storage access.
+            }
+        }
+
+        function loadHistory() {
+            try {
+                const storedHistory = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                history = Array.isArray(storedHistory)
+                    ? storedHistory.filter(item => Number.isFinite(item.angle) && item.direction).slice(0, 10)
+                    : [];
+            } catch {
+                history = [];
+            }
+        }
+
+        function addToHistory(angle, direction) {
+            const now = new Date();
+
+            history.unshift({
+                angle,
+                direction: direction.name,
+                label: direction.label,
+                time: now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: now.toISOString()
+            });
+
+            history = history.slice(0, 10);
+            saveHistory();
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            historyList.innerHTML = '';
+            clearHistoryButton.disabled = history.length === 0;
+
+            if (history.length === 0) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'empty-history';
+                emptyItem.textContent = '还没有记录。转一下后会保留最近 10 次结果。';
+                historyList.appendChild(emptyItem);
+                return;
+            }
+
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+
+                const directionText = document.createElement('div');
+                directionText.className = 'history-direction';
+                directionText.textContent = `${item.label || getDirectionFromAngle(item.angle).label} (${item.angle}°)`;
+
+                const timeText = document.createElement('div');
+                timeText.className = 'history-time';
+                timeText.textContent = item.time || '刚刚';
+
+                li.append(directionText, timeText);
+                historyList.appendChild(li);
+            });
+        }
+
+        function finishSpin(angle) {
+            const normalizedAngle = normalizeAngle(angle);
+            const direction = getDirectionFromAngle(normalizedAngle);
+
+            isSpinning = false;
+            spinButton.disabled = false;
+            spinButton.textContent = '再转一次';
+
+            rotatePointer(normalizedAngle);
+            currentRotation = normalizedAngle;
+            resultDirection.textContent = `${direction.label} (${normalizedAngle}°)`;
+            resultText.textContent = getDescription(direction.label);
+            addToHistory(normalizedAngle, direction);
+        }
+
         function startSpinning() {
             if (isSpinning) return;
-            
+
             isSpinning = true;
             spinButton.disabled = true;
-            spinButton.textContent = 'SPINNING...';
-            
-            // Reset result display
-            resultDirection.textContent = '-';
-            resultText.textContent = 'Finding your direction...';
-            
-            // Random spin parameters
-            const spinDuration = 2000 + Math.random() * 2000; // 2-4 seconds
-            const extraRotations = 5 + Math.floor(Math.random() * 10); // 5-14 full circles
+            spinButton.textContent = '转动中...';
+            resultDirection.textContent = '寻找中';
+            resultText.textContent = '正在给你选一个方向。';
+
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const spinDuration = prefersReducedMotion ? 250 : 1800 + Math.random() * 1200;
+            const extraRotations = prefersReducedMotion ? 0 : 5 + Math.floor(Math.random() * 6);
             const targetAngle = getRandomAngle();
-            
-            // Calculate total rotation (target angle + extra full rotations)
-            const totalTargetAngle = targetAngle + extraRotations * 360;
-            
-            // Start animation
+            const turnDelta = normalizeAngle(targetAngle - currentRotation);
+            const totalTargetAngle = currentRotation + turnDelta + extraRotations * 360;
             const startTime = Date.now();
-            
+
             function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / spinDuration, 1);
-                
-                // Easing function for smooth deceleration
                 const easeOut = 1 - Math.pow(1 - progress, 3);
-                
-                const rotation = easeOut * totalTargetAngle;
-                currentRotation = rotation % 360;
-                rotatePointer(rotation);
-                
+
+                rotatePointer(currentRotation + easeOut * (totalTargetAngle - currentRotation));
+
                 if (progress < 1) {
-                    spinAnimation = requestAnimationFrame(animate);
+                    requestAnimationFrame(animate);
                 } else {
                     finishSpin(targetAngle);
                 }
             }
-            
-            animate();
+
+            requestAnimationFrame(animate);
         }
-        
-        function finishSpin(angle) {
-            isSpinning = false;
-            spinButton.disabled = false;
-            spinButton.textContent = 'SPIN AGAIN';
-            
-            // Normalize angle to 0-360
-            const normalizedAngle = (angle % 360 + 360) % 360;
-            
-            // Snap to exact angle for precision
-            rotatePointer(normalizedAngle);
-            
-            // Get direction name from angle
-            const directionName = getDirectionFromAngle(normalizedAngle);
-            
-            // Update result display
-            resultDirection.textContent = `${directionName} (${normalizedAngle}°)`;
-            resultText.textContent = getDescriptionFromAngle(normalizedAngle, directionName);
-            
-            // Add to history
-            addToHistory(normalizedAngle, directionName);
-        }
-        
-        function addToHistory(angle, directionName) {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            history.unshift({
-                angle: angle,
-                direction: directionName,
-                time: timeString,
-                timestamp: now
-            });
-            
-            // Keep only last 10 entries
-            if (history.length > 10) {
-                history.pop();
-            }
-            
+
+        function clearHistory() {
+            history = [];
+            saveHistory();
             updateHistoryDisplay();
         }
-        
-        function updateHistoryDisplay() {
-            historyList.innerHTML = '';
-            
-            history.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'history-item';
-                
-                li.innerHTML = `
-                    <div class="history-direction">${directionNames[item.direction]} (${item.angle}°)</div>
-                    <div class="history-time">${item.time}</div>
-                `;
-                
-                historyList.appendChild(li);
-            });
-        }
-        
-        // Initialize with North direction
+
         function init() {
-            // Set pointer to North (0°)
-            const initialAngle = 0;
-            rotatePointer(initialAngle);
-            
-            // Set initial result display
-            const initialDirection = 'N';
-            resultDirection.textContent = `${initialDirection} (${initialAngle}°)`;
-            resultText.textContent = getDescriptionFromAngle(initialAngle, initialDirection);
-            
-            // Add a few sample history entries
-            addToHistory(initialAngle, initialDirection);
-            addToHistory(90, 'E');
-            addToHistory(180, 'S');
+            rotatePointer(0);
+            loadHistory();
+            updateHistoryDisplay();
         }
-        
-        // Event listeners
+
         spinButton.addEventListener('click', startSpinning);
-        
-        // Initialize on load
+        clearHistoryButton.addEventListener('click', clearHistory);
         window.addEventListener('load', init);
     </script>
 </body>
